@@ -1,0 +1,4 @@
+# ignore ALL .log files
+finishedGame/systeminfo.txt
+finishedGame/AIProduction.zip
+finishedGame/RealProduction.zip
