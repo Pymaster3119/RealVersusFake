@@ -4,3 +4,15 @@ finishedGame/AIProduction.zip
 finishedGame/RealProduction.zip
 fakeimgs
 realimgs
+*.pth
+cnn_model0.pth
+cnn_model1.pth
+cnn_model2.pth
+cnn_model3.pth
+cnn_model4.pth
+cnn_model5.pth
+cnn_model6.pth
+cnn_model7.pth
+cnn_model8.pth
+cnn_model9.pth
+cnn_model10.pth

@@ -14,6 +14,7 @@ from io import BytesIO
 from PIL import Image
 import pickle
 import ImageDataset
+from tqdm import tqdm
 
 print(torch.backends.mps.is_available())  # Should print True if MPS is available
 print(torch.backends.mps.is_built())   
@@ -54,8 +55,8 @@ train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
 # Create data loaders
 batch_size = 32
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2)
-val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=2)
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
+val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
 
 # Initialize the model, loss function, and optimizer
 device = torch.device("cpu")
@@ -73,10 +74,8 @@ for epoch in range(num_epochs):
     print("Training started!")
     model.train()
     running_loss = 0.0
-    imageindex = 0
-    for images, labels in train_loader:
-        print(imageindex)
-        imageindex += 1
+
+    for images, labels in tqdm(train_loader, desc = "Training"):
         images, labels = images.to(device), labels.to(device)
         optimizer.zero_grad()
         outputs = model(images)
@@ -93,8 +92,9 @@ for epoch in range(num_epochs):
     val_loss = 0.0
     correct = 0
     total = 0
+    print("Evaluation started")
     with torch.no_grad():
-        for images, labels in val_loader:
+        for images, labels in tqdm(val_loader, desc="Evaluating"):
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
             loss = criterion(outputs, labels)
@@ -103,7 +103,7 @@ for epoch in range(num_epochs):
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-
+    print("Evaluation ended")
     val_loss /= len(val_loader)
     val_losses.append(val_loss)
     accuracy = 100 * correct / total
