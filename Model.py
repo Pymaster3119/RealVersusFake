@@ -81,3 +81,86 @@ class CNN(nn.Module):
         x = self.fc2(x)
         return x
 
+# Set up data transforms
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
+
+# Create dataset and split into train and validation sets
+dataset = ImageDataset('path/to/real/images', 'path/to/fake/images', transform=transform)
+train_size = int(0.8 * len(dataset))
+val_size = len(dataset) - train_size
+train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+
+# Create data loaders
+batch_size = 32
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+
+# Initialize the model, loss function, and optimizer
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = CNN().to(device)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+
+# Training loop
+num_epochs = 10
+train_losses = []
+val_losses = []
+
+for epoch in range(num_epochs):
+    model.train()
+    running_loss = 0.0
+    for images, labels in train_loader:
+        images, labels = images.to(device), labels.to(device)
+
+        optimizer.zero_grad()
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+        running_loss += loss.item()
+
+    train_loss = running_loss / len(train_loader)
+    train_losses.append(train_loss)
+
+    # Validation
+    model.eval()
+    val_loss = 0.0
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for images, labels in val_loader:
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            val_loss += loss.item()
+
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    val_loss /= len(val_loader)
+    val_losses.append(val_loss)
+    accuracy = 100 * correct / total
+
+    print(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Accuracy: {accuracy:.2f}%')
+
+# Plot training and validation loss
+plt.figure(figsize=(10, 5))
+plt.plot(range(1, num_epochs+1), train_losses, label='Train Loss')
+plt.plot(range(1, num_epochs+1), val_losses, label='Validation Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Training and Validation Loss')
+plt.legend()
+plt.show()
+
+# Save the model
+torch.save(model.state_dict(), 'cnn_model.pth')
+
+print("Training complete. Model saved as 'cnn_model.pth'")
