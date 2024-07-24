@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "Hello Extensions",
-    "description": "Base Level Extension",
+    "name": "Real Or Fake",
+    "description": "Your safeguard against AI-generated tomfoolery",
     "version": "1.0",
     "action": {
       "default_popup": "hello.html",

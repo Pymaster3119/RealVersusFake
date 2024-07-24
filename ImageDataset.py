@@ -12,14 +12,16 @@ from io import BytesIO
 from PIL import Image
 import pickle
 import re
+from tqdm import tqdm
 
 # Import zip file
 def import_images(paths):
     realimgs = []
     fakeimgs = []
     for path in paths:
+        print(path)
         with zipfile.ZipFile(path, 'r') as zip:
-            for file in zip.namelist():
+            for file in tqdm(zip.namelist(), desc="Downloading files"):
                 if "real" in file.lower():
                         realimgs.append(file + "\:FLAG:/" + path)
                 if "fake" in file.lower():
@@ -40,6 +42,7 @@ class ImageDataset(Dataset):
         self.labels = [1] * len(self.real_images) + [0] * len(self.fake_images)
         self.transform = transform
         self.pattern = r'^(.*)\\:FLAG:/([^/]*)$'
+        self.zips = {"TrainingDataset1.zip":zipfile.ZipFile("TrainingDataset1.zip", "r"),"TrainingDataset2.zip":zipfile.ZipFile("TrainingDataset2.zip", "r"),"TrainingDataset3.zip":zipfile.ZipFile("TrainingDataset3.zip", "r")}
 
     def __len__(self):
         return len(self.all_images)
@@ -48,21 +51,21 @@ class ImageDataset(Dataset):
         img_path = self.all_images[idx]
         match = re.match(self.pattern, img_path)
         if match:
-            zip = zipfile.ZipFile(match.group(1), "r")
-            file = zip.open(file)
+            zip = self.zips[match.group(2)]
+            file = zip.open(match.group(1))
             image_data = file.read()
             img = Image.open(BytesIO(image_data))
+            img = img.convert("RGB")
             label = self.labels[idx]
 
             if self.transform:
                 img = self.transform(img)
-            zip.close()
             return img, label
 
 if __name__ == "__main__":
     #Run ONLY once!
 
-    realimgs, fakeimgs = import_images(["TrainingDataset1.zip", "TrainingDataset1.zip", "TrainingDataset3.zip"])
+    realimgs, fakeimgs = import_images(["TrainingDataset1.zip", "TrainingDataset2.zip", "TrainingDataset3.zip"])
     with open("realimgs", "wb") as txt: 
         pickle.dump(realimgs, txt)
     with open("fakeimgs", "wb") as txt: 

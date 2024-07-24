@@ -65,65 +65,55 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 
-#change
-#---- model is the same but variable names throughout are tweaked to allow for the storage of train_per_batch and train_per_epoch
-
 # Training loop
 num_epochs = 100
-train_per_batch_losses = []
+train_losses = []
 val_losses = []
-train_per_epoch_losses = []
 
 for epoch in range(num_epochs):
-   print("Training started!")
-   model.train()
-   running_loss = 0.0
+    print("Training started!")
+    model.train()
+    running_loss = 0.0
 
+    for images, labels in tqdm(train_loader, desc = "Training"):
+        images, labels = images.to(device), labels.to(device)
+        optimizer.zero_grad()
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+        running_loss += loss.item()
 
-   for images, labels in tqdm(train_loader, desc = "Training"):
-       images, labels = images.to(device), labels.to(device)
-       optimizer.zero_grad()
-       outputs = model(images)
-       loss = criterion(outputs, labels)
-       loss.backward()
-       optimizer.step()
-       running_loss += loss.item()
-       train_per_batch_losses.append(loss.item())
-   if (i+1) % 100 == 0:
-       print(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{len(train_loader)}], Loss: {loss.item():.4f}')
-   epoch_train_loss = running_loss / len(train_loader)
-   train_per_epoch_losses.append(epoch_train_loss)
-   print("Training Ended")
+    train_loss = running_loss / len(train_loader)
+    train_losses.append(train_loss)
+    print("Training Ended")
+    # Validation
+    model.eval()
+    val_loss = 0.0
+    correct = 0
+    total = 0
+    print("Evaluation started")
+    with torch.no_grad():
+        for images, labels in tqdm(val_loader, desc="Evaluating"):
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            val_loss += loss.item()
 
-   # Validation
-   model.eval()
-   val_loss = 0.0
-   correct = 0
-   total = 0
-   print("Evaluation started")
-   with torch.no_grad():
-       for images, labels in tqdm(val_loader, desc="Evaluating"):
-           images, labels = images.to(device), labels.to(device)
-           outputs = model(images)
-           loss = criterion(outputs, labels)
-           val_loss += loss.item()
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    print("Evaluation ended")
+    val_loss /= len(val_loader)
+    val_losses.append(val_loss)
+    accuracy = 100 * correct / total
 
+    print(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Accuracy: {accuracy:.2f}%')
+    torch.save(model.state_dict(), 'cnn_model' + str(epoch) + '.pth')
 
-           _, predicted = torch.max(outputs.data, 1)
-           total += labels.size(0)
-           correct += (predicted == labels).sum().item()
-   print("Evaluation ended")
-   val_loss /= len(val_loader)
-   val_losses.append(val_loss)
-   accuracy = 100 * correct / total
-
-
-   print(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {train_per_epoch_loss:.4f}, Val Loss: {val_loss:.4f}, Accuracy: {accuracy:.2f}%')
-   torch.save(model.state_dict(), 'cnn_model' + str(epoch) + '.pth')
-
-#change
+# Plot training and validation loss
 plt.figure(figsize=(10, 5))
-plt.plot(range(1, num_epochs+1), train_per_epoch_losses, label='Train Loss')
+plt.plot(range(1, num_epochs+1), train_losses, label='Train Loss')
 plt.plot(range(1, num_epochs+1), val_losses, label='Validation Loss')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
@@ -131,15 +121,7 @@ plt.title('Training and Validation Loss')
 plt.legend()
 plt.show()
 
-#add
-plt.figure(figsize=(10, 5))
-plt.plot(range(1, (len(train_per_batch_losses)+1)), train_per_batch_losses, label = "Train Batch Loss")
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.title('Training Per Batch Loss')
-plt.legend()
-plt.show()
-
 # Save the model
 torch.save(model.state_dict(), 'cnn_model.pth')
+
 print("Training complete. Model saved as 'cnn_model.pth'")
