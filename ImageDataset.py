@@ -11,6 +11,7 @@ import zipfile
 from io import BytesIO
 from PIL import Image
 import pickle
+import re
 
 # Import zip file
 def import_images(paths):
@@ -20,21 +21,10 @@ def import_images(paths):
         with zipfile.ZipFile(path, 'r') as zip:
             for file in zip.namelist():
                 if "real" in file.lower():
-                        try:
-                            image_file = zip.open(file)
-                            image_data = image_file.read()
-                            image = Image.open(BytesIO(image_data))
-                            image = image.crop((0,0,image.size[0]-98, image.size[1]-20)).resize((500,500))
-                            realimgs.append(image)
-                        except:
-                            pass
+                        realimgs.append(file + "\:FLAG:/" + path)
                 if "fake" in file.lower():
                     try:
-                        image_file = zip.open(file)
-                        image_data = image_file.read()
-                        image = Image.open(BytesIO(image_data))
-                        image = image.crop((0,0,image.size[0]-98, image.size[1]-20)).resize((500,500))
-                        fakeimgs.append(image)
+                        fakeimgs.append(file + "\:FLAG:/" + path)
                     except:
                         pass
     return (realimgs, fakeimgs)
@@ -49,18 +39,25 @@ class ImageDataset(Dataset):
         self.all_images = self.real_images + self.fake_images
         self.labels = [1] * len(self.real_images) + [0] * len(self.fake_images)
         self.transform = transform
+        self.pattern = r'^(.*)\\:FLAG:/([^/]*)$'
 
     def __len__(self):
         return len(self.all_images)
 
     def __getitem__(self, idx):
-        img_path = self.all_images[idx].convert('RGB')
-        label = self.labels[idx]
+        img_path = self.all_images[idx]
+        match = re.match(self.pattern, img_path)
+        if match:
+            zip = zipfile.ZipFile(match.group(1), "r")
+            file = zip.open(file)
+            image_data = file.read()
+            img = Image.open(BytesIO(image_data))
+            label = self.labels[idx]
 
-        if self.transform:
-            img_path = self.transform(img_path)
-
-        return img_path, label
+            if self.transform:
+                img = self.transform(img)
+            zip.close()
+            return img, label
 
 if __name__ == "__main__":
     #Run ONLY once!
@@ -70,5 +67,4 @@ if __name__ == "__main__":
         pickle.dump(realimgs, txt)
     with open("fakeimgs", "wb") as txt: 
         pickle.dump(fakeimgs, txt)
-    print(os.path.getsize("realimgs"))
-    print(os.path.getsize("fakeimgs"))
+    print(len(realimgs), len(fakeimgs))
