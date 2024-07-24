@@ -13,10 +13,10 @@ import threading
 import io
 import hashlib
 
-zips = ["70gb.zip", ]
+zips = ["70gb.zip", "archive (7).zip"]
 with zipfile.ZipFile('Training Dataset.zip', "w") as origional:
     for zip in zips:
-        with zipfile.Zipfile(zip, "r") as tocopy:
+        with zipfile.ZipFile(zip, "r") as tocopy:
             for file in tocopy.namelist():
                 if "real" in file.lower():
                     
