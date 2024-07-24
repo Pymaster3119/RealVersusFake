@@ -12,8 +12,10 @@ import asyncore
 import threading
 import io
 import hashlib
+import os
 
-zips = ["70gb.zip", "archive (7).zip"]
+zips = ["70gb.zip", "/Users/aditya/Desktop/RealVsFakeImages/archive(7).zip"]
+files = {}
 with zipfile.ZipFile('Training Dataset.zip', "w") as origional:
     for zip in zips:
         with zipfile.ZipFile(zip, "r") as tocopy:
@@ -34,7 +36,8 @@ with zipfile.ZipFile('Training Dataset.zip', "w") as origional:
                         img_byte_arr = io.BytesIO()
                         image.save(img_byte_arr, format='PNG')  # You can use other formats like 'JPEG'
                         img_byte_arr.seek(0)  # Move the pointer to the beginning of the byte stream
-                        tocopy.writestr('real' + hashlib.sha384(file.encode()).hexdigest() + '.png', img_byte_arr.getvalue())
+                        origional.writestr('real' + hashlib.sha384(file.encode()).hexdigest() + '.png', img_byte_arr.getvalue())
+                        os.system(f"zip -d \"{'real' + hashlib.sha384(file.encode()).hexdigest() + '.png'}\" {zip}")
                     except:
                         pass
                 if "fake" in file.lower():
@@ -53,6 +56,11 @@ with zipfile.ZipFile('Training Dataset.zip', "w") as origional:
                         img_byte_arr = io.BytesIO()
                         image.save(img_byte_arr, format='PNG')  # You can use other formats like 'JPEG'
                         img_byte_arr.seek(0)  # Move the pointer to the beginning of the byte stream
-                        tocopy.writestr('fake' + hashlib.sha384(file.encode()).hexdigest() + '.png', img_byte_arr.getvalue())
+                        origional.writestr('fake' + hashlib.sha384(file.encode()).hexdigest() + '.png', img_byte_arr.getvalue())
+                        os.system(f"zip -d \"{'fake' + hashlib.sha384(file.encode()).hexdigest() + '.png'}\" {zip}")
                     except:
                         pass
+        os.remove(zip)
+
+    for file in files.keys():
+        origional.writestr(file, files[file])

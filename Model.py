@@ -66,7 +66,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 
 # Training loop
-num_epochs = 10
+num_epochs = 100
 train_losses = []
 val_losses = []
 
