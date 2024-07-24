@@ -1,11 +1,40 @@
 const processedImages = new Set();
 
+// Function to convert image to data URL
+function getImageDataURL(img) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+    
+    return canvas.toDataURL('image/png');
+}
+
+async function sendImageToServer(dataURL) {
+    const response = await fetch('/upload', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image: dataURL })
+    });
+    
+    const result = await response.json();
+    console.log(result);
+}
+
+sendImageToServer();
+
+
 function processImage(image) {
     if (processedImages.has(image)) return;
-
+    data = getImageDataURL(image);
+    sendImageToServer(data);
     // Create a button element
     const button = document.createElement('button');
-    button.innerHTML = 'This image looks AI generated\nShow text anyway';
+    button.innerHTML = '<h1>This image looks AI generated<\h1><p><br><br>Show text anyway<\p>';
     button.style.position = 'absolute';
     button.style.backgroundColor = '#007bff'; // Blue background
     button.style.color = 'white'; // White text
