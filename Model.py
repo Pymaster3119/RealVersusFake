@@ -11,7 +11,6 @@ from torchvision import transforms
 from PIL import Image
 import zipfile
 from io import BytesIO
-from PIL import Image
 import pickle
 import ImageDataset
 from tqdm import tqdm
@@ -54,12 +53,12 @@ val_size = len(dataset) - train_size
 train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
 # Create data loaders
-batch_size = 32
+batch_size = 16  # Start with a smaller batch size
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
 
 # Initialize the model, loss function, and optimizer
-device = torch.device("cpu")
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 model = CNN().to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -75,8 +74,8 @@ for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
 
-    for images, labels in tqdm(train_loader, desc = "Training"):
-        images, labels = images.to(device), labels.to(device)
+    for images, labels in tqdm(train_loader, desc="Training"):
+        images, labels = images.to(device, dtype=torch.float32), labels.to(device)
         optimizer.zero_grad()
         outputs = model(images)
         loss = criterion(outputs, labels)
@@ -95,7 +94,7 @@ for epoch in range(num_epochs):
     print("Evaluation started")
     with torch.no_grad():
         for images, labels in tqdm(val_loader, desc="Evaluating"):
-            images, labels = images.to(device), labels.to(device)
+            images, labels = images.to(device, dtype=torch.float32), labels.to(device)
             outputs = model(images)
             loss = criterion(outputs, labels)
             val_loss += loss.item()
