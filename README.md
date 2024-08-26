@@ -16,3 +16,7 @@
    ```bash
    git clone https://github.com/yourusername/real-versus-fake.git
    cd real-versus-fake
+2. Install Dependencies: Ensure you have the necessary dependencies installed:
+  ```bash
+  pip install -r requirements.txt
+
