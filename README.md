@@ -1,5 +1,3 @@
-![Screenshot 2024-08-21 at 11 09 27 PM](https://github.com/user-attachments/assets/5a50be72-d72f-4ebd-ba09-fdd99fa485f1)
-
 # Real Versus Fake
 
 ## Overview
@@ -35,3 +33,5 @@ Once installed and activated, the Chrome extension will automatically analyze al
 
 ## AI Model
 The AI models are trained using a dataset of real and fake images, leveraging deep learning techniques such as convolutional neural networks (CNNs) for image classification.
+
+![Screenshot 2024-08-21 at 11 09 27 PM](https://github.com/user-attachments/assets/5a50be72-d72f-4ebd-ba09-fdd99fa485f1)
