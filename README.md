@@ -17,11 +17,11 @@
 
 ### Backend
 1. Clone the repository:
-   `git clone https://github.com/yourusername/real-versus-fake.git`
+   git clone https://github.com/pymaster3119/real-versus-fake.git
 2. Install dependencies:
-   `pip install -r requirements.txt`
+   pip install -r requirements.txt
 3. Start the AI model server:
-   `python server.py`
+   python ExtentionServer.py
 
 ## How It Works
 - The Chrome extension runs in the background, detecting all images displayed on the web pages you visit.
